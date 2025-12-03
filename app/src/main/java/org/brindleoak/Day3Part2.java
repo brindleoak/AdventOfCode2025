@@ -1,54 +1,69 @@
 package org.brindleoak;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
-record Extraction(String acc, String rem) {}
-
 public class Day3Part2 {
+    static record Extraction(String acc, String rem) {
+    }
+
     public static void main(String[] args) throws IOException {
+        InputStream is = Day3Part2.class.getResourceAsStream("/data/day-3-input.txt");
+        if (is == null) {
+            throw new IllegalArgumentException("File not found");
+        }
 
-        List<String> rules = Files
-                .readAllLines(Path
-                        .of("/Users/simon.lewis/GitHub/AdventOfCode2025/app/src/main/java/org/brindleoak/day-3-input.txt"));
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            List<String> rules = br.lines().toList();
+            long totalJoltage = computeTotalJoltage(rules);
+            System.out.println("Total joltage = " + totalJoltage);
+        }
+    }
 
+    public static long computeTotalJoltage(List<String> rules) {
         long totalJoltage = 0L;
 
         for (String rule : rules) {
-            var ex = new Extraction("", rule);
+            Extraction ex = new Extraction("", rule);
 
-            String startRule = rule;
-
-            while (ex.acc().length() < 12)
+            while (ex.acc().length() < 12) {
                 ex = removeSmallest(ex);
-            long joltage = Long.parseLong(ex.acc());
-            System.out.println(startRule + " -->" + joltage);
+            }
 
-            totalJoltage +=joltage;
+            long joltage = Long.parseLong(ex.acc());
+            totalJoltage += joltage;
         }
 
-        System.out.println("Total joltage = " + totalJoltage);
+        return totalJoltage;
     }
 
-    private static Extraction removeSmallest(Extraction ex) {
+    static Extraction removeSmallest(Extraction ex) {
+        if (ex == null) {
+            throw new IllegalArgumentException("Extraction cannot be null");
+        }
+
         String bank = ex.rem();
         String acc = ex.acc();
 
         if (acc.length() + bank.length() < 12) {
-            System.out.println("Oops. error. Batteries left < 12");
-            System.exit(1);
+            throw new IllegalArgumentException("Extraction total length cannot be less than 12");
         }
 
         if (acc.length() + bank.length() == 12) {
             return new Extraction(acc + bank, "");
         }
 
+        if (bank.length() == 0) {
+            throw new IllegalArgumentException("Extraction cannot have an empty bank");
+        }
         int b = 0;
 
-        for (int i=0; i < bank.length() - 11 + acc.length(); i++) {
-            if (bank.charAt(i) > bank.charAt(b)) b = i;
+        for (int i = 0; i < bank.length() - 11 + acc.length(); i++) {
+            if (bank.charAt(i) > bank.charAt(b))
+                b = i;
         }
 
         return new Extraction(acc + bank.charAt(b), bank.substring(b + 1));

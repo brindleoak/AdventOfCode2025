@@ -1,10 +1,8 @@
 package org.brindleoak;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Day3 {
@@ -20,7 +18,7 @@ public class Day3 {
             Long joltage = largestJoltage(rule);
             System.out.println(rule + " -->" + joltage);
 
-            totalJoltage +=joltage;
+            totalJoltage += joltage;
         }
 
         System.out.println("Total joltage = " + totalJoltage);
@@ -28,17 +26,19 @@ public class Day3 {
 
     private static long largestJoltage(String bank) {
         int batteryLast = bank.length() - 1;
-        int battery1 = selectBattery(bank,0, batteryLast - 1);
+        int battery1 = selectBattery(bank, 0, batteryLast - 1);
         int battery2 = selectBattery(bank, battery1 + 1, batteryLast);
 
-        return Long.parseLong(String.valueOf(bank.charAt(battery1))) * 10 + Long.parseLong(String.valueOf(bank.charAt(battery2)));
+        return Long.parseLong(String.valueOf(bank.charAt(battery1))) * 10
+                + Long.parseLong(String.valueOf(bank.charAt(battery2)));
     }
 
     private static int selectBattery(String bank, int start, int end) {
         int battery = start;
 
-        for (int i=start; i <= end; i++) {
-            if (bank.charAt(i) > bank.charAt(battery)) battery = i;
+        for (int i = start; i <= end; i++) {
+            if (bank.charAt(i) > bank.charAt(battery))
+                battery = i;
         }
 
         return battery;

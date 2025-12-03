@@ -9,3 +9,15 @@ build
 .vscode/
 
 .envrc
+
+# Ignore IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+*.ipr
+*.iws
+
+# Ignore binary files
+app/build/
+app/bin/
+
