@@ -12,7 +12,7 @@ public class Day2 {
 
         List<String> rules = Files
                 .readAllLines(Path
-                        .of("/home/simon/GitHub/AdventOfCode2025/app/src/main/java/org/brindleoak/day-2-input.txt"));
+                        .of("/Users/simon.lewis/GitHub/AdventOfCode2025/app/src/main/java/org/brindleoak/day-2-input.txt"));
 
         String rule = rules.getFirst();
         String[] ranges = rule.split(",");
@@ -47,12 +47,12 @@ public class Day2 {
         for (BigInteger n = start; n.compareTo(end) <= 0; n = n.add(BigInteger.ONE)) {
             listInts.add(n);
         }
-        List<String> list = listInts.stream().map(String::valueOf).toList();
-        return list;
+        return listInts.stream().map(String::valueOf).toList();
     }
 
-    // part 1 solution
-    public static Boolean isValid(String n) {
+/*
+ part 1 solution
+    public static boolean isValid(String n) {
         if (n.startsWith("0"))
             return true;
 
@@ -63,15 +63,12 @@ public class Day2 {
 
         int mid = len / 2;
 
-        if (n.substring(0, mid).equals(n.substring(mid))) {
-            return false;
-        }
-
-        return true;
+        return !n.substring(0, mid).equals(n.substring(mid));
     }
+*/
 
     // part 2 solution
-    public static Boolean isValid2(String n) {
+    public static boolean isValid2(String n) {
         if (n.startsWith("0"))
             return true;
 

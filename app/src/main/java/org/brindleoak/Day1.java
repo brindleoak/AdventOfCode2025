@@ -25,7 +25,7 @@ public class Day1 {
 
   }
 
-  public static State apply(State oldState, String rule) {
+  private static State apply(State oldState, String rule) {
     int move = Integer.parseInt(rule.substring(1));
 
     int position = oldState.position();
@@ -37,7 +37,7 @@ public class Day1 {
 
     startPos = position;
 
-    if (rule.substring(0, 1).equals("L"))
+    if (rule.charAt(0) == 'L')
       position -= move;
     else
       position += move;
@@ -51,7 +51,7 @@ public class Day1 {
     position = ((position % 100) + 100) % 100;
 
     System.out
-        .println(String.valueOf(startPos) + " -> " + rule + " -> " + position + " (numOfZeros: " + cycles + ")");
+        .println(startPos + " -> " + rule + " -> " + position + " (numOfZeros: " + cycles + ")");
 
     return new State(position, cycles);
   }
