@@ -1,10 +1,16 @@
 package org.brindleoak;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import java.util.List;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.brindleoak.Day3Part2.Extraction;
+import org.brindleoak.Day3Part2.BatterySelectionState;
 
 class Day3Part2Test {
 
@@ -12,58 +18,45 @@ class Day3Part2Test {
     void removeSmallestThrowsWhenExtractionIsNull() {
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
-                () -> Day3Part2.removeSmallest(null));
+                () -> Day3Part2.selectNextLargestBattery(null));
         assertEquals("Extraction cannot be null", ex.getMessage());
     }
 
-    @Test
-    void removeSmallestReturnsWholeStringWhenTotalLengthExactlyTwelve1() {
-        Extraction ex = new Extraction("", "123456789012");
+    @ParameterizedTest
+    @MethodSource("exactlyTwelveCases")
+    void removeSmallestReturnsWholeStringWhenTotalLengthExactlyTwelve(String acc, String rem) {
+        BatterySelectionState ex = new BatterySelectionState(acc, rem);
 
-        Extraction result = Day3Part2.removeSmallest(ex);
+        BatterySelectionState result = Day3Part2.selectNextLargestBattery(ex);
 
-        assertEquals("123456789012", result.acc());
-        assertEquals("", result.rem());
+        assertEquals("123456789012", result.selected());
+        assertEquals("", result.remaining());
     }
 
-    @Test
-    void removeSmallestReturnsWholeStringWhenTotalLengthExactlyTwelve2() {
-        Extraction ex = new Extraction("123456789012", "");
-
-        Extraction result = Day3Part2.removeSmallest(ex);
-
-        assertEquals("123456789012", result.acc());
-        assertEquals("", result.rem());
-    }
-
-    @Test
-    void removeSmallestReturnsWholeStringWhenTotalLengthExactlyTwelve3() {
-        Extraction ex = new Extraction("12345678", "9012");
-
-        Extraction result = Day3Part2.removeSmallest(ex);
-
-        assertEquals("123456789012", result.acc());
-        assertEquals("", result.rem());
+    private static Stream<Arguments> exactlyTwelveCases() {
+        return Stream.of(
+                Arguments.of("", "123456789012"),
+                Arguments.of("123456789012", ""),
+                Arguments.of("12345678", "9012"));
     }
 
     @Test
     void removeSmallestMovesExactlyOneCharFromBankToAcc() {
-        Extraction ex = new Extraction("123", "456789012345");
+        BatterySelectionState ex = new BatterySelectionState("123", "456789012345");
 
-        Extraction result = Day3Part2.removeSmallest(ex);
+        BatterySelectionState result = Day3Part2.selectNextLargestBattery(ex);
 
-        // length invariants
-        assertEquals("1237", result.acc(), "acc should gain one character");
-        assertEquals("89012345", result.rem(), "rem should lose four characters");
+        assertEquals("1237", result.selected(), "acc should gain one character");
+        assertEquals("89012345", result.remaining(), "rem should lose four characters");
     }
 
     @Test
     void removeSmallestThrowsWhenTotalLengthLessThanTwelve() {
-        Extraction ex = new Extraction("123", "4567"); // length 7 < 12
+        BatterySelectionState ex = new BatterySelectionState("123", "4567");
 
         IllegalArgumentException exThrown = assertThrows(
                 IllegalArgumentException.class,
-                () -> Day3Part2.removeSmallest(ex));
+                () -> Day3Part2.selectNextLargestBattery(ex));
         assertEquals("Extraction total length cannot be less than 12", exThrown.getMessage());
     }
 

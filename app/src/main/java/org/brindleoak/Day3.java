@@ -1,30 +1,39 @@
 package org.brindleoak;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 public class Day3 {
     public static void main(String[] args) throws IOException {
 
-        List<String> rules = Files
-                .readAllLines(Path
-                        .of("/Users/simon.lewis/GitHub/AdventOfCode2025/app/src/main/java/org/brindleoak/day-3-input.txt"));
-
-        long totalJoltage = 0L;
-
-        for (String rule : rules) {
-            Long joltage = largestJoltage(rule);
-            System.out.println(rule + " -->" + joltage);
-
-            totalJoltage += joltage;
+        InputStream is = Day3Part2.class.getResourceAsStream("/data/day-3-input.txt");
+        if (is == null) {
+            throw new IllegalArgumentException("File not found: /data/day-3-input.txt");
         }
 
-        System.out.println("Total joltage = " + totalJoltage);
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            List<String> rules = br.lines().toList();
+
+            long totalJoltage = 0L;
+
+            for (String rule : rules) {
+                long joltage = largestJoltage(rule);
+                System.out.println(rule + " -->" + joltage);
+                totalJoltage += joltage;
+            }
+
+            System.out.println("Total joltage = " + totalJoltage);
+        }
     }
 
-    private static long largestJoltage(String bank) {
+    /**
+     * @param bank Represents a number of batteries
+     * @return The largest joltage that can be obtained from two batteries
+     */
+    static long largestJoltage(String bank) {
         int batteryLast = bank.length() - 1;
         int battery1 = selectBattery(bank, 0, batteryLast - 1);
         int battery2 = selectBattery(bank, battery1 + 1, batteryLast);
@@ -33,7 +42,13 @@ public class Day3 {
                 + Long.parseLong(String.valueOf(bank.charAt(battery2)));
     }
 
-    private static int selectBattery(String bank, int start, int end) {
+    /**
+     * @param bank  Represents a number of batteries
+     * @param start Index of the first battery to consider
+     * @param end   Index of the last battery to consider
+     * @return Index of the battery with the largest value in the start-end range
+     */
+    static int selectBattery(String bank, int start, int end) {
         int battery = start;
 
         for (int i = start; i <= end; i++) {
