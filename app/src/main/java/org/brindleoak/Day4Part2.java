@@ -5,7 +5,7 @@ import java.io.InputStream;
 
 import java.nio.charset.StandardCharsets;
 
-public class Day4 {
+public class Day4Part2 {
 
     public static void main(final String[] args) throws IOException {
         final InputStream is = Day3Part2.class.getResourceAsStream("/data/day-4-input.txt");
@@ -15,9 +15,9 @@ public class Day4 {
         }
 
         String diagram = new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("\n", "");
-        final int accessibleCount = computeAccessibleCount(diagram);
+        final int unAccessibleCount = computeUnAccessibleCount(diagram);
 
-        System.out.println(accessibleCount);
+        System.out.println(unAccessibleCount);
     }
 
     record Offset(int dy, int dx) {
@@ -34,11 +34,35 @@ public class Day4 {
             new Offset(1, 1)
     };
 
-    public static int computeAccessibleCount(final String diagram) {
+    public static int computeUnAccessibleCount(String diagram) {
+        String currentDiagram = diagram;
+        String nextDiagram = removeAccessible(diagram);
+
+        while (currentDiagram != nextDiagram) {
+            currentDiagram = nextDiagram;
+            nextDiagram = removeAccessible(currentDiagram);
+        }
+
+        int originalCount = 0;
+        int finalCount = 0;
+        for (int i = 0; i < diagram.length(); i++) {
+            if (diagram.charAt(i) == '@') {
+                originalCount++;
+            }
+            if (currentDiagram.charAt(i) == '@') {
+                finalCount++;
+            }
+        }
+        return originalCount - finalCount;
+    }
+
+    public static String removeAccessible(String diagram) {
         int totalSize = diagram.length();
         int gridSize = (int) Math.sqrt(totalSize);
 
         int[] neighbors = new int[totalSize];
+
+        String updatedDiagram = diagram;
 
         for (int i = 0; i < diagram.length(); i++) {
             if (diagram.charAt(i) != '@') {
@@ -59,13 +83,16 @@ public class Day4 {
             }
         }
 
-        int accessibleCount = 0;
+        int itemsRemoved = 0;
         for (int i = 0; i < neighbors.length; i++) {
             if (neighbors[i] < 4 && diagram.charAt(i) == '@') {
-                System.out.println("Position " + i + " has " + neighbors[i] + " accessible neighbors.");
-                accessibleCount++;
+                updatedDiagram = updatedDiagram.substring(0, i) + '.' + diagram.substring(i + 1);
+                itemsRemoved++;
             }
         }
-        return accessibleCount;
+
+        System.out.println("Items removed this pass: " + itemsRemoved);
+        // System.out.println(diagram);
+        return updatedDiagram;
     }
 }

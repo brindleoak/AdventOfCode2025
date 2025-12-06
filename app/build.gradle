@@ -34,7 +34,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.brindleoak.Day3Part2'
+    mainClass = 'org.brindleoak.Day4'
 }
 
 tasks.named('test') {
