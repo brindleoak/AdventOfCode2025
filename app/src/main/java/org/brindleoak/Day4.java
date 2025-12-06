@@ -20,10 +20,10 @@ public class Day4 {
     }
 
     public static void main(final String[] args) throws IOException {
-        final InputStream is = Day3Part2.class.getResourceAsStream("/data/day-4-input.txt.test");
+        final InputStream is = Day3Part2.class.getResourceAsStream("/data/day-4-input.txt");
 
         if (is == null) {
-            throw new IllegalStateException("Required resource missing: /data/day-4-input.txt.test");
+            throw new IllegalStateException("Required resource missing: /data/day-4-input.txt");
         }
 
         String diagram = new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("\n", "");
@@ -60,31 +60,21 @@ public class Day4 {
                 }
                 if (!leftColumn(i, gridSize)) {
                     neighbors[i - 1]++;
-                    if (!topRow(i, gridSize)) {
-                        neighbors[i - gridSize - 1]++;
-                    }
-                    if (!bottomRow(i, gridSize)) {
-                        neighbors[i + gridSize - 1]++;
-                    }
                 }
                 if (!rightColumn(i, gridSize)) {
                     neighbors[i + 1]++;
-                    if (!topRow(i, gridSize)) {
-                        neighbors[i - gridSize + 1]++;
-                    }
-                    if (!bottomRow(i, gridSize)) {
-                        neighbors[i + gridSize + 1]++;
-                    }
                 }
             }
         }
 
+        int accessibleCount = 0;
         for (int i = 0; i < neighbors.length; i++) {
-            if (neighbors[i] < 4) {
+            if (neighbors[i] < 4 && diagram.charAt(i) == '@') {
                 System.out.println("Position " + i + " has " + neighbors[i] + " accessible neighbors.");
+                accessibleCount++;
             }
         }
-        return neighbors[0];
+        return accessibleCount;
     }
 
     static boolean topRow(int i, int gridSize) {
