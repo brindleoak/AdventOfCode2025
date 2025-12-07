@@ -15,7 +15,7 @@ public class Day6Part2 {
     }
 
     public static void main(final String[] args) throws IOException {
-        final InputStream is = Day3Part2.class.getResourceAsStream("/data/day-6-input.txt");
+        final InputStream is = Day6Part2.class.getResourceAsStream("/data/day-6-input.txt");
 
         if (is == null) {
             throw new IllegalStateException("Required resource missing: /data/day-6-input.txt");
