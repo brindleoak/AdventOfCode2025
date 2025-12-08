@@ -26,8 +26,7 @@ public class Day7Part2 {
         }
 
         long[] currentRow = new long[colCount];
-        for (int i = 0; i < colCount; i++)
-            currentRow[i] = 0;
+
         for (int i = 0; i < colCount; i++) {
             if (grid[0][i] == 'S')
                 currentRow[i] = 1;
@@ -35,8 +34,6 @@ public class Day7Part2 {
 
         for (int r = 1; r < rowCount; r++) {
             long[] nextRow = new long[colCount];
-            for (int c = 0; c < colCount; c++)
-                nextRow[c] = 0;
 
             for (int c = 0; c < colCount; c++) {
                 long currentColumnCount = currentRow[c];
