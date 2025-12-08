@@ -18,14 +18,9 @@ public class Day6 {
             throw new IllegalStateException("Required resource missing: /data/day-6-input.txt");
         }
 
-        List<String> rules = new ArrayList<>();
-
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            rules = br.lines().toList();
+            br.lines().toList();
         }
-
-        var t = storeInput(rules);
-
     }
 
     public static ArrayList<String> storeInput(List<String> ruleList) {
