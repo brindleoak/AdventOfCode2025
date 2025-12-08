@@ -4,7 +4,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class Day8 {
+public class Day8Part2 {
 
     static class Point {
         final int x;
@@ -22,7 +22,7 @@ public class Day8 {
 
     record Pair(Point point1, Point point2, double distance) {
         static double distance(Point a, Point b) {
-            return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) + Math.pow(a.z - b.z, 2));
+            return Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) + Math.pow(a.z - b.z, 2);
         }
 
         static Pair of(Point a, Point b) {
@@ -32,10 +32,10 @@ public class Day8 {
 
     public static void main(String[] args) throws Exception {
 
-        final InputStream is = Day8.class.getResourceAsStream("/data/day-8-input.txt.test");
+        final InputStream is = Day8.class.getResourceAsStream("/data/day-8-input.txt");
 
         if (is == null) {
-            throw new IllegalStateException("Required resource missing: /data/day-8-input.txt.test");
+            throw new IllegalStateException("Required resource missing: /data/day-8-input.txt");
         }
 
         List<String> inputRecords = new ArrayList<>();
@@ -44,16 +44,16 @@ public class Day8 {
             inputRecords = br.lines().toList();
         }
 
-        int result = solve(inputRecords);
+        long result = solve(inputRecords);
         System.out.println("Result: " + result);
     }
 
-    static int solve(List<String> rules) {
+    static long solve(List<String> rules) {
         List<Point> points = buildPoints(rules);
         List<Pair> pairs = buildPairs(points);
 
         int newCircuit = 5000; // starting circuit for merged points
-        int leftToProcess = 10;
+        long res = 0;
 
         for (Pair pair : pairs) {
 
@@ -64,31 +64,22 @@ public class Day8 {
                 mergeCircuits(points, circuit1, circuit2, newCircuit++);
             }
 
-            if (--leftToProcess == 0) {
+            int firstCircuit = points.getFirst().circuit;
+            boolean allSameCircuit = true;
+
+            for (Point p : points) {
+                if (p.circuit != firstCircuit) {
+                    allSameCircuit = false;
+                    break;
+                }
+            }
+
+            if (allSameCircuit) {
+                res = (long) pair.point1.x * pair.point2.x;
                 break;
             }
         }
 
-        // calculate sizes of each circuit
-        Map<Integer, Integer> circuitSizes = new HashMap<>();
-        for (Point p : points) {
-            int circuit = p.circuit;
-
-            Integer c = circuitSizes.get(circuit);
-            if (c == null) {
-                circuitSizes.put(circuit, 1);
-            } else {
-                circuitSizes.replace(circuit, c.intValue() + 1);
-            }
-
-        }
-
-        // multiply the sizes of the three biggest circuits
-        int res = 1;
-        var biggest = circuitSizes.values().stream().sorted(Comparator.reverseOrder()).toList().subList(0, 3);
-        for (Integer size : biggest) {
-            res = res * size;
-        }
         return res;
     }
 
