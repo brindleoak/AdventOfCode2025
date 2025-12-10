@@ -7,16 +7,18 @@ import java.util.*;
 public class Day8Part2 {
 
     static class Point {
+        private static int nextCircuit = 0;
+
         final int x;
         final int y;
         final int z;
         int circuit;
 
-        Point(int x, int y, int z, int circuit) {
+        Point(int x, int y, int z) {
             this.x = x;
             this.y = y;
             this.z = z;
-            this.circuit = circuit;
+            this.circuit = nextCircuit++;
         }
     }
 
@@ -52,7 +54,7 @@ public class Day8Part2 {
         List<Point> points = buildPoints(rules);
         List<Pair> pairs = buildPairs(points);
 
-        int newCircuit = 5000; // starting circuit for merged points
+        int newCircuit = Point.nextCircuit;
         long res = 0;
 
         for (Pair pair : pairs) {
@@ -85,7 +87,6 @@ public class Day8Part2 {
 
     static List<Point> buildPoints(List<String> rules) {
         List<Point> points = new ArrayList<>();
-        int circuit = 0;
 
         for (String rule : rules) {
             String[] parts = rule.split(",");
@@ -94,7 +95,7 @@ public class Day8Part2 {
             int y = Integer.parseInt(parts[1]);
             int z = Integer.parseInt(parts[2]);
 
-            points.add(new Point(x, y, z, circuit++));
+            points.add(new Point(x, y, z));
         }
 
         return points;
