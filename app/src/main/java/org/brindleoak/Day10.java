@@ -17,7 +17,6 @@ public class Day10 {
 
             return display + " [" + this.display + "] " + buttonString;
         }
-
     }
 
     public static void main(String[] args) throws Exception {
@@ -36,7 +35,6 @@ public class Day10 {
 
         List<Machine> machines = setUpMachines(inputRecords);
 
-        // print machines
         for (Machine m : machines) {
             System.out.println(m.toString());
         }
@@ -65,19 +63,13 @@ public class Day10 {
             List<Integer> buttonArrayList = new ArrayList<>();
 
             for (int i = 1; i < parts.length - 1; i++) {
-                // System.out.println("-----------------------------------");
-                // System.out.println(parts[i]);
                 var digits = parts[i].replace("(", "").replace(")", "").split(",");
                 int button = 0;
-                for (int j = 0; j < digits.length; j++) {
 
+                for (int j = 0; j < digits.length; j++) {
                     long base10 = (long) Math.pow(10, displayString.length() - Integer.parseInt(digits[j]) - 1);
                     long binary = Long.parseLong(String.valueOf(base10), 2);
                     button += binary;
-                    // System.out
-                    // .println("length: " + displayString.length() + " digit: " + "digit " +
-                    // digits[j] + " = "
-                    // + binary);
                 }
                 buttonArrayList.add(button);
             }
@@ -99,13 +91,8 @@ public class Day10 {
         long totalNumberOfButtons = 0;
 
         for (Machine machine : machines) {
-            // System.out.println("------------------------------------------------------------");
-
             int numberOfButtons = solveMachine(machine);
             totalNumberOfButtons += numberOfButtons;
-
-            // System.out.println("Processed machine. Result = " + numberOfButtons + "
-            // buttons");
         }
 
         return totalNumberOfButtons;
@@ -113,29 +100,23 @@ public class Day10 {
 
     static int solveMachine(Machine machine) {
 
+        // given the button effect is XOR we know there is no point in ever hitting the
+        // same button twice. So we can just try all combinations of buttons: 2^n where
+        // n is the number of buttons
         double combinations = Math.pow(2, machine.buttons.length);
         int lowestNumberOfButtons = Integer.MAX_VALUE;
 
         for (int i = 0; i < combinations; i++) {
-            // System.out.println("Processing combination " + Integer.toBinaryString(i)
-            // + " (looking for result " + machine.display + ")");
             int display = 0;
             int numberOfButtons = 0;
             for (int j = 0; j < machine.buttons.length; j++) {
-
                 if (((i >> j) & 1) == 1) {
                     ++numberOfButtons;
-                    var newDisplay = display ^ machine.buttons[j];
-                    // System.out.println(
-                    // " Processing button " + j + " with value " +
-                    // Integer.toBinaryString(machine.buttons[j])
-                    // + " " + display + "-->" + newDisplay);
-                    display = newDisplay;
+                    display = display ^ machine.buttons[j]; // press the button
                 }
             }
+
             if (display == machine.display) {
-                // System.out.println("Found combination " + Integer.toBinaryString(i) + " with
-                // result " + display);
                 if (numberOfButtons < lowestNumberOfButtons) {
                     lowestNumberOfButtons = numberOfButtons;
                 }
