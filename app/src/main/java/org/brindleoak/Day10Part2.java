@@ -5,19 +5,34 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Day10Part2 {
+    static int lowestNumberOfPresses = Integer.MAX_VALUE;
 
     public record Machine(int[][] buttons, int[] joltage) {
+        @Override
+        public String toString() {
+            return "Machine{" +
+                    "buttons=" + Arrays.deepToString(buttons) +
+                    ", joltage=" + Arrays.toString(joltage) +
+                    '}';
+        }
     }
 
-    public record State(boolean solved, int[] joltage, int numberOfPresses) {
+    public record State(int[] joltage, int numberOfPresses) {
+        @Override
+        public String toString() {
+            return "State{" +
+                    ", joltage=" + Arrays.toString(joltage) +
+                    ", numberOfPresses=" + numberOfPresses +
+                    '}';
+        }
     }
 
     public static void main(String[] args) throws Exception {
 
-        final InputStream is = Day9.class.getResourceAsStream("/data/day-10-input.txt.test");
+        final InputStream is = Day9.class.getResourceAsStream("/data/day-10-input.txt");
 
         if (is == null) {
-            throw new IllegalStateException("Required resource missing: /data/day-10-input.txt.test");
+            throw new IllegalStateException("Required resource missing: /data/day-10-input.txt");
         }
 
         List<String> inputRecords = new ArrayList<>();
@@ -46,28 +61,26 @@ public class Day10Part2 {
         for (String record : inputRecords) {
             String[] parts = record.split(" ");
 
-            List<Integer> buttonArrayList = new ArrayList<>();
+            // process buttons
+            int[][] buttons = new int[parts.length - 2][];
 
-            for (int i = 0; i < parts.length - 1; i++) {
-                var digits = parts[i].replace("(", "").replace(")", "").split(",");
+            for (int i = 1; i < parts.length - 1; i++) {
+                var positionArray = parts[i].replace("(", "").replace(")", "").split(",");
 
-                for (int j = 0; j < digits.length; j++) {
-                    buttonArrayList.add(Integer.parseInt(digits[j]));
+                int[] positions = new int[positionArray.length];
+                for (int j = 0; j < positions.length; j++) {
+                    positions[j] = Integer.parseInt(positionArray[j]);
                 }
+                buttons[i - 1] = positions;
             }
 
-            int[] buttons = new int[buttonArrayList.size()];
-            int i = 0;
-            for (Integer b : buttonArrayList) {
-                buttons[i++] = b;
-            }
-
+            // process joltages
             String[] joltageStrings = parts[parts.length - 1].replace("{", "").replace("}", "").split(",");
             int[] joltages = new int[joltageStrings.length];
             for (int j = 0; j < joltageStrings.length; j++) {
                 joltages[j] = Integer.parseInt(joltageStrings[j]);
             }
-            machines.add(new Machine(display, buttons, joltages));
+            machines.add(new Machine(buttons, joltages));
         }
 
         return machines;
@@ -77,67 +90,154 @@ public class Day10Part2 {
         long totalNumberOfButtons = 0;
 
         for (Machine machine : machines) {
-            State state = new State(false, new int[machine.joltage.length], 0);
-            State newState = solveMachine(machine, state);
+            // Reset the global minimum for each machine
+            lowestNumberOfPresses = Integer.MAX_VALUE;
 
-            if (newState.solved == false) {
-                System.out.println("Could not solve machine: " + machine.toString());
-                throw new IllegalStateException("Could not solve machine" + machine.toString());
-            }
-            totalNumberOfButtons += state.numberOfPresses;
+            // Start the optimized recursive search from button index 0
+            // Initial state: currentTotals={0,0,...}, currentTotalPresses=0
+            solveMachineRecursive(machine,
+                    0, // Start with button index 0
+                    new int[machine.joltage.length], // Current totals (starts at 0)
+                    0); // Current total number of presses
+
+            System.out.println("Lowest number of presses for machine: " + lowestNumberOfPresses);
+
+            totalNumberOfButtons += lowestNumberOfPresses;
+
+            // Assuming you want to process all machines eventually:
+            // return totalNumberOfButtons; // <-- Remove this line to process all machines
+
         }
-
         return totalNumberOfButtons;
     }
 
-    static State solveMachine(Machine machine, State state) {
-        System.out.println("Solving machine with state: " + state.toString());
+    /**
+     * Optimized Backtracking Solver for the Multiset Additive Problem.
+     * The recursion depth is fixed to the number of buttons (N).
+     *
+     * @param buttonIndex         The index of the button currently being tested (0
+     *                            to N-1).
+     * @param currentTotals       The cumulative effect of button presses so far.
+     * @param currentTotalPresses The sum of all button presses so far.
+     */
+    static void solveMachineRecursive(
+            Machine machine,
+            int buttonIndex,
+            int[] currentTotals,
+            int currentTotalPresses) {
 
-        if (state.solved) {
-            return state;
-        }
-
+        final int numberOfTotals = machine.joltage.length;
         final int numberOfButtons = machine.buttons.length;
 
-        int lowestNumberOfButtons = Integer.MAX_VALUE;
+        // --- 1. BASE CASE: All buttons have been processed (depth N) ---
+        if (buttonIndex == numberOfButtons) {
+            // Check if the final state matches the target
+            if (Arrays.equals(currentTotals, machine.joltage)) {
+                if (currentTotalPresses < lowestNumberOfPresses) {
+                    lowestNumberOfPresses = currentTotalPresses;
+                    System.out.println("New lowest number of presses: " + lowestNumberOfPresses);
+                }
+            }
+            return;
+        }
 
-        for (int i = 0; i < numberOfButtons; i++) {
+        // --- 2. RECURSIVE STEP: Iterate on the press count (x_i) for the current
+        // button ---
 
-            int[] newJoltage = pushButton(machine, i, state.joltage);
-            if (newJoltage == null) { // this button push blows the joltagetotal. Skip it.
+        // Find the absolute maximum number of times the current button can be pressed.
+        // This is the CRITICAL PRUNING STEP that stops the infinite loop.
+        int maxPressesForCurrentButton = getOptimalMaxPresses(machine, buttonIndex, currentTotals);
+
+        int[] buttonEffect = machine.buttons[buttonIndex];
+
+        // Loop through the number of times (x_i) we press buttonIndex: 0, 1, 2, ... max
+        for (int presses = 0; presses <= maxPressesForCurrentButton; presses++) {
+
+            // A. PRUNING CHECK (Minimum Presses Found):
+            // If the total presses already meets or exceeds the best solution found, stop.
+            if (currentTotalPresses + presses >= lowestNumberOfPresses) {
+                return; // Stop exploring this button and all subsequent buttons in this branch
+            }
+
+            // B. CHOOSE & CALCULATE NEW STATE:
+            int newTotalPresses = currentTotalPresses + presses;
+
+            // Create the new totals for the recursive call. (Clone is key for backtracking)
+            int[] newTotals = currentTotals.clone();
+
+            // Apply the effect of pressing the button 'presses' times
+            boolean isOvershoot = false;
+            for (int k = 0; k < numberOfTotals; k++) {
+                // The effect of one press on counter k
+                int effect = 0;
+                // Check if the button affects counter k (The indices in the button array ARE
+                // the counter IDs)
+                for (int counterIndex : buttonEffect) {
+                    if (counterIndex == k) {
+                        effect = 1; // Assuming each listed index means +1 to that counter
+                        break;
+                    }
+                }
+
+                newTotals[k] += presses * effect; // Apply the total press count effect
+
+                // IMMEDIATE PRUNING CHECK (Target Exceeded)
+                if (newTotals[k] > machine.joltage[k]) {
+                    isOvershoot = true;
+                    break;
+                }
+            }
+
+            if (isOvershoot) {
+                // If this press count caused an overshoot, then any higher count will too.
+                // Stop the inner 'for (presses...)' loop and move to the next button (or
+                // terminate branch).
                 continue;
             }
 
-            State newState = new State(false, newJoltage, state.numberOfPresses + 1);
+            // C. RECURSE: Move to the next button (buttonIndex + 1)
+            solveMachineRecursive(machine,
+                    buttonIndex + 1,
+                    newTotals,
+                    newTotalPresses);
 
-            State resultState = solveMachine(machine, new State(false, newJoltage, state.numberOfPresses + 1));
-
-            if (resultState.solved) {
-                if (newState.numberOfPresses < lowestNumberOfButtons) {
-                    lowestNumberOfButtons = newState.numberOfPresses;
-                }
-            }
+            // D. BACKTRACK: No explicit undo needed because we used newTotals.clone()
         }
-
-        return new State(true, state.joltage, lowestNumberOfButtons);
     }
 
-    static int[] pushButton(Machine machine, int buttonId, int[] joltage) {
-        int[] newJoltage = Arrays.copyOf(joltage, joltage.length);
-        int button = machine.buttons[buttonId];
-        System.out.println("Pushing button: " + button);
+    /**
+     * Determines the maximum safe number of times to press the current button
+     * (B_i).
+     *
+     * @return The highest press count before any counter is guaranteed to overshoot
+     *         the target.
+     */
+    private static int getOptimalMaxPresses(Machine machine, int buttonIndex, int[] currentTotals) {
+        int maxPresses = Integer.MAX_VALUE;
+        int[] buttonEffect = machine.buttons[buttonIndex];
 
-        for (int i = 0; i < joltage.length; i++) {
-            if ((button >> i & 1) == 1) {
-                System.out.println("  Increasing joltage at position " + i + " from " + newJoltage[i] + " to "
-                        + (newJoltage[i] + 1) + ". New value " + machine.joltage.toString());
-                newJoltage[i] += 1;
-                if (newJoltage[i] > machine.joltage[i]) {
-                    return null;
-                }
+        // Loop through the affected counters to find the tightest constraint
+        for (int counterId : buttonEffect) {
+
+            int targetValue = machine.joltage[counterId];
+            int currentValue = currentTotals[counterId];
+
+            // If the counter is already at or above the target, this button cannot be used
+            // further
+            if (currentValue >= targetValue) {
+                return 0;
             }
+
+            // How many more presses are safe? The effect on this counter is +1 per press.
+            int remainingNeeded = targetValue - currentValue;
+
+            // Update the maximum allowed presses to the tightest constraint found so far
+            maxPresses = Math.min(maxPresses, remainingNeeded);
         }
-        return newJoltage;
+
+        // If the button affects no counters, it can be pressed 0 times (or maxPresses
+        // remains MAX_VALUE, which implies it's useless)
+        return (maxPresses == Integer.MAX_VALUE) ? 0 : maxPresses;
     }
 
 }
