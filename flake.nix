@@ -1,10 +1,7 @@
 {
   description = "Beginner-friendly Java dev environment";
 
-  inputs = {
-    nixpkgs.url =
-      "nixpkgs/nixos-25.05"; # or "nixos-unstable" if you prefer bleeding-edge
-  };
+  inputs = { nixpkgs.url = "nixpkgs/nixos-25.05"; };
 
   outputs = { self, nixpkgs }:
     let
@@ -14,23 +11,14 @@
       devShells.${system}.default = pkgs.mkShell {
         name = "java-dev";
 
-        packages = with pkgs; [
-          # Java runtime & compiler
-          openjdk21 # current long-term-support JDK
+        packages = with pkgs; [ openjdk21 gradle maven jdt-language-server ];
 
-          # Build tools
-          gradle
-          maven
+        env = { JAVA_HOME = pkgs.openjdk21.passthru.home; };
 
-          # Optional helpers
-          jdt-language-server # backend for Java completion/analysis
-        ];
-
-        # Nice-to-have shell settings
         shellHook = ''
           echo "🧩 Java dev shell active!"
           echo "JDK: $(java -version 2>&1 | head -n1)"
-          echo "Use 'gradle init' or 'mvn archetype:generate' to start a new project."
+          echo "JAVA_HOME is set to: $JAVA_HOME"
         '';
       };
     };
